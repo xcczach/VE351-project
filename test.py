@@ -1,5 +1,10 @@
 from simulator import Simulator
-from estimator import Estimator, DirectRatioEstimator
+from estimator import (
+    Estimator,
+    DirectRatioEstimator,
+    LeastSquaresEstimator,
+    RegularizedLeastSquaresEstimator,
+)
 from typing import List
 
 if __name__ == "__main__":
@@ -13,7 +18,11 @@ if __name__ == "__main__":
         [0, 5 * Ts, 12 * Ts, 30 * Ts, 50 * Ts],
         [0, 5.4 * Ts, 12.5 * Ts, 30 * Ts, 50.5 * Ts],
     ]
-    estimators: List[Estimator] = [DirectRatioEstimator()]
+    estimators: List[Estimator] = [
+        DirectRatioEstimator(),
+        LeastSquaresEstimator(),
+        RegularizedLeastSquaresEstimator(),
+    ]
     for p in p_arr:
         X_k = simulator.create_pilot_Xk(p)
         for h_t_ind in range(len(h_t_amplitudes)):

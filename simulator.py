@@ -75,7 +75,7 @@ class Simulator:
         plt.grid()
         plt.xlabel("Freq (Hz)")
         plt.ylabel("Magnitude (normalized)")
-        plt.title(f"Frequency Magnitude Plot, filename={plot_filename}")
+        plt.title(f"Frequency Magnitude, {plot_filename}")
         plt.legend()
         plt.savefig(plot_filename)
 
@@ -91,5 +91,5 @@ if __name__ == "__main__":
     H_k = sim.fft(h_t)
     W_k = sim.create_gaussian_noise_Wk(SNR, p, H_k, X_k)
     Y_k = sim.create_Y_k(H_k, X_k, W_k)
-    sim.freq_mag_plot_for_real_signal(H_k, "H_k.png")
+    sim.freq_mag_plot(H_k, "H_k.png")
     print(h_t.shape, X_k.shape, H_k.shape, W_k.shape, Y_k.shape)
