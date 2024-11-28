@@ -30,6 +30,7 @@ class Simulator:
     def create_gaussian_noise_Wk(
         self, SNR: float, p: int, H_k: np.ndarray, X_k: np.ndarray
     ):
+        SNR = 10 ** (SNR / 10)
         P_noise = p * np.sum(np.abs(H_k * X_k) ** 2) / (self.N * SNR)
         return np.sqrt(P_noise) * np.random.randn(self.N)
 
@@ -39,14 +40,43 @@ class Simulator:
     def mse(self, H_k_hat: np.ndarray, H_k: np.ndarray):
         return np.mean(np.abs(H_k_hat - H_k) ** 2)
 
-    def freq_mag_plot_for_real_signal(self, signal_K: np.ndarray, plot_filename: str):
+    def freq_mag_plot(self, signal_K: np.ndarray, plot_filename: str):
+        """
+        For real-valued time-domain signals only.
+        """
         normalized_signal_K = 2.0 / self.N * np.abs(signal_K[0 : self.N // 2])
         normalized_signal_K[0] /= 2
+        plt.figure()
         plt.plot(self.f[0 : self.N // 2], normalized_signal_K)
         plt.grid()
         plt.xlabel("Freq (Hz)")
         plt.ylabel("Magnitude (normalized)")
         plt.title("Frequency Magnitude Plot")
+        plt.savefig(plot_filename)
+
+    def comparison_freq_mag_plot(
+        self, signal_K1: np.ndarray, signal_K2: np.ndarray, plot_filename: str
+    ):
+        """
+        For real-valued time-domain signals only.
+        """
+        normalized_signal_K1 = 2.0 / self.N * np.abs(signal_K1[0 : self.N // 2])
+        normalized_signal_K1[0] /= 2
+        normalized_signal_K2 = 2.0 / self.N * np.abs(signal_K2[0 : self.N // 2])
+        normalized_signal_K2[0] /= 2
+        plt.figure()
+        plt.plot(self.f[0 : self.N // 2], normalized_signal_K1, label="True")
+        plt.plot(
+            self.f[0 : self.N // 2],
+            normalized_signal_K2,
+            label="Estimated",
+            linestyle="--",
+        )
+        plt.grid()
+        plt.xlabel("Freq (Hz)")
+        plt.ylabel("Magnitude (normalized)")
+        plt.title(f"Frequency Magnitude Plot, filename={plot_filename}")
+        plt.legend()
         plt.savefig(plot_filename)
 
 
