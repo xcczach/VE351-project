@@ -36,6 +36,9 @@ class Simulator:
     def create_Y_k(self, H_k: np.ndarray, X_k: np.ndarray, W_k: np.ndarray):
         return H_k * X_k + W_k
 
+    def mse(self, H_k_hat: np.ndarray, H_k: np.ndarray):
+        return np.mean(np.abs(H_k_hat - H_k) ** 2)
+
     def freq_mag_plot_for_real_signal(self, signal_K: np.ndarray, plot_filename: str):
         normalized_signal_K = 2.0 / self.N * np.abs(signal_K[0 : self.N // 2])
         normalized_signal_K[0] /= 2
@@ -59,3 +62,4 @@ if __name__ == "__main__":
     W_k = sim.create_gaussian_noise_Wk(SNR, p, H_k, X_k)
     Y_k = sim.create_Y_k(H_k, X_k, W_k)
     sim.freq_mag_plot_for_real_signal(H_k, "H_k.png")
+    print(h_t.shape, X_k.shape, H_k.shape, W_k.shape, Y_k.shape)
