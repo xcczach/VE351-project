@@ -78,6 +78,7 @@ class Simulator:
         plt.title(f"Frequency Magnitude, {plot_filename}")
         plt.legend()
         plt.savefig(plot_filename)
+        plt.close()
 
 
 if __name__ == "__main__":
