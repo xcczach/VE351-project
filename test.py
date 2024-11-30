@@ -8,6 +8,8 @@ from estimator import (
     PolynomialInterpolationEstimator,
     SplineInterpolationEstimator,
     KalmanFilterEstimator,
+    CompressedSensingEstimator,
+    MUSICEstimator,
 )
 from typing import List
 import pandas as pd
@@ -31,10 +33,12 @@ if __name__ == "__main__":
         LeastSquaresEstimator(),
         RegularizedLeastSquaresEstimator(),
         MMSEEstimator(var_H2=1.0, var_W2=1.0),
-        PolynomialInterpolationEstimator(lambda_reg=0.1, degree=5),
-        PolynomialInterpolationEstimator(lambda_reg=0.1, degree=10),
-        SplineInterpolationEstimator(lambda_reg=0.1, kind="cubic"),
+        PolynomialInterpolationEstimator(degree=5),
+        PolynomialInterpolationEstimator(degree=10),
+        SplineInterpolationEstimator(kind="cubic"),
         KalmanFilterEstimator(Q=1, R=0),
+        # CompressedSensingEstimator(), # TODO: These two estimators are pending correct implementation
+        # MUSICEstimator(),
     ]
     results = []
     for p in p_arr:
@@ -62,7 +66,7 @@ if __name__ == "__main__":
                     simulator.comparison_freq_mag_plot(
                         H_k,
                         H_k_hat,
-                        f"plots/Hk_{h_t_ind}_{estimator.label()}_{p}_{SNR}_mse{mse.round()}.png",
+                        f"plots/Hk_{h_t_ind}_{estimator.label()}_{p}_{SNR}.png",
                     )
     # Create a DataFrame from the results and plot the MSE vs SNR
     df = pd.DataFrame(results)
@@ -155,7 +159,7 @@ if __name__ == "__main__":
         title="ht",
         fontsize="small",
         ncol=2,
-        bbox_to_anchor=(1, 0.75),
+        bbox_to_anchor=(1, 0.7),
         loc="upper right",
     )
     ax.add_artist(legend_estimators)
