@@ -4,8 +4,10 @@ from estimator import (
     DirectRatioEstimator,
     LeastSquaresEstimator,
     RegularizedLeastSquaresEstimator,
+    MMSEEstimator,
     PolynomialInterpolationEstimator,
     SplineInterpolationEstimator,
+    KalmanFilterEstimator,
 )
 from typing import List
 import pandas as pd
@@ -28,8 +30,11 @@ if __name__ == "__main__":
         DirectRatioEstimator(),
         LeastSquaresEstimator(),
         RegularizedLeastSquaresEstimator(),
+        MMSEEstimator(var_H2=1.0, var_W2=1.0),
         PolynomialInterpolationEstimator(lambda_reg=0.1, degree=5),
+        PolynomialInterpolationEstimator(lambda_reg=0.1, degree=10),
         SplineInterpolationEstimator(lambda_reg=0.1, kind="cubic"),
+        KalmanFilterEstimator(Q=1, R=0),
     ]
     results = []
     for p in p_arr:
@@ -142,7 +147,7 @@ if __name__ == "__main__":
         title="p",
         fontsize="small",
         ncol=2,
-        bbox_to_anchor=(1, 0.9),
+        bbox_to_anchor=(1, 0.8),
         loc="upper right",
     )
     ax.legend(
@@ -150,7 +155,7 @@ if __name__ == "__main__":
         title="ht",
         fontsize="small",
         ncol=2,
-        bbox_to_anchor=(1, 0.8),
+        bbox_to_anchor=(1, 0.75),
         loc="upper right",
     )
     ax.add_artist(legend_estimators)

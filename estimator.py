@@ -1,5 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
+from scipy.interpolate import interp1d
 
 ZERO_THRESHOLD = 1e-6
 
@@ -27,15 +28,12 @@ class LeastSquaresEstimator(Estimator):
         return "Least Squares Estimator"
 
     def estimate_channel(self, Y_k: np.ndarray, X_k: np.ndarray) -> np.ndarray:
-        # Create a diagonal matrix of X_k (nonzero entries only)
-        nonzero_indices = X_k > ZERO_THRESHOLD  # Identify nonzero X_k
-        X_k_filtered = X_k[nonzero_indices]  # Filter nonzero X_k
-        Y_k_filtered = Y_k[nonzero_indices]  # Corresponding Y_k values
+        nonzero_indices = X_k > ZERO_THRESHOLD
+        X_k_filtered = X_k[nonzero_indices]
+        Y_k_filtered = Y_k[nonzero_indices]
 
-        # Solve the least squares problem H_k using linear regression
         H_k = np.dot(np.linalg.pinv(np.diag(X_k_filtered)), Y_k_filtered)
 
-        # Return a full-sized result, fill zeros where X_k is zero
         H_k_full = np.zeros_like(X_k, dtype=np.complex_)
         H_k_full[nonzero_indices] = H_k
         return H_k_full
@@ -55,6 +53,21 @@ class RegularizedLeastSquaresEstimator(Estimator):
             0,
             Y_k * np.conj(X_k) / (X_abs_sq + self.lambda_reg),
         )
+        return H_k
+
+
+class MMSEEstimator(Estimator):
+    def __init__(self, var_H2: float, var_W2: float):
+        self.var_H2 = var_H2
+        self.var_W2 = var_W2
+
+    def label(self):
+        return f"MMSE Estimator (σ_H²={self.var_H2}, σ_W²={self.var_W2})"
+
+    def estimate_channel(self, Y_k: np.ndarray, X_k: np.ndarray) -> np.ndarray:
+        X_abs_sq = np.abs(X_k) ** 2
+        coeff = self.var_H2 * X_abs_sq / (X_abs_sq * self.var_H2 + self.var_W2)
+        H_k = coeff * (Y_k * np.conj(X_k)) / (X_abs_sq + 1e-12)
         return H_k
 
 
@@ -90,9 +103,6 @@ class PolynomialInterpolationEstimator(RegularizedLeastSquaresEstimator):
         H_k[unknown_indices] = H_est
 
         return H_k
-
-
-from scipy.interpolate import interp1d
 
 
 class SplineInterpolationEstimator(RegularizedLeastSquaresEstimator):
@@ -133,3 +143,45 @@ class SplineInterpolationEstimator(RegularizedLeastSquaresEstimator):
         H_k[unknown_indices] = H_est
 
         return H_k
+
+
+class KalmanFilterEstimator(Estimator):
+    def __init__(
+        self,
+        Q: float = 1e-5,
+        R: float = 1e-2,
+    ):
+        self.Q = Q
+        self.R = R
+
+    def label(self):
+        return f"Kalman Filter Estimator (Q={self.Q}, R={self.R})"
+
+    def estimate_channel(self, Y_k: np.ndarray, X_k: np.ndarray) -> np.ndarray:
+        H_new = np.zeros_like(X_k, dtype=np.complex_)
+        num_subcarriers = len(X_k)
+        H_est = np.zeros(num_subcarriers, dtype=np.complex_)
+        P = np.ones(num_subcarriers)
+
+        for k in range(num_subcarriers):
+            if np.abs(X_k[k]) < ZERO_THRESHOLD:
+                H_new[k] = H_est[k]
+                continue
+
+            H_pred = H_est[k]
+            P_pred = P[k] + self.Q
+
+            X_conj = np.conj(X_k[k])
+            denominator = (np.abs(X_k[k]) ** 2) * P_pred + self.R
+            K = P_pred * X_conj / denominator
+
+            innovation = Y_k[k] - X_k[k] * H_pred
+            H_updated = H_pred + K * innovation
+
+            P_updated = (1 - K * X_k[k]) * P_pred
+
+            H_new[k] = H_updated
+            H_est[k] = H_updated
+            P[k] = P_updated
+
+        return H_new
