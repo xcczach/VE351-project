@@ -37,7 +37,7 @@ if __name__ == "__main__":
         PolynomialInterpolationEstimator(degree=10),
         SplineInterpolationEstimator(kind="cubic"),
         KalmanFilterEstimator(Q=1, R=0),
-        # CompressedSensingEstimator(), # TODO: These two estimators are pending correct implementation
+        # CompressedSensingEstimator(), # TODO: These two estimators are pending correct implementation, time permits
         # MUSICEstimator(),
     ]
     results = []
